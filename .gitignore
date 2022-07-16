@@ -2,9 +2,9 @@
 .idea
 .DS_Store
 app/venv
+*__pycache__*
+app/eprf/migrations
 
-app/templates
-app/eprf
 app/resources/zipcodes/*
 app/resources/veds/*
 materials/*
