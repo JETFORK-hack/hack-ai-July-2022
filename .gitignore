@@ -5,3 +5,8 @@ app/venv
 
 app/templates
 app/eprf
+app/resources/zipcodes/*
+app/resources/veds/*
+materials/*
+app/__pycache__
+app/hackathon/__pycache__/

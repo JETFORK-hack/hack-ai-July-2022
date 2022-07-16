@@ -11,10 +11,10 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 from pathlib import Path
+from os import environ
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
@@ -23,10 +23,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-5bp5u!!*p6d#)mka+#p268o76@rm812ftxjf-s1dmhgxv2l-ol'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = int(environ.get('DEBUG', default=1))
 
-ALLOWED_HOSTS = ['*']
-
+ALLOWED_HOSTS = environ.get('MACHINE_IP', default='*').split(' ')
 
 # Application definition
 
@@ -71,7 +70,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'hackathon.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
@@ -84,15 +82,15 @@ WSGI_APPLICATION = 'hackathon.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'dev',
-        'USER': 'developer',
-        'PASSWORD': 'k1hack',
-        'HOST': '0.0.0.0',
-        'PORT': '5555',
+        'ENGINE': environ.get('SQL_ENGINE', default='django.db.backends.postgresql'),
+        'NAME': environ.get('POSTGRES_DB', default='postgres'),
+        'USER': environ.get('POSTGRES_USER', default='postgres'),
+        'PASSWORD': environ.get('POSTGRES_PASSWORD', default='jetfork2022kack'),
+        'HOST': environ.get('DB_DOCKER_HOST', default='localhost'),
+        # 'HOST': 'db',
+        'PORT': environ.get('DB_PORT', default='5432'),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
@@ -112,21 +110,19 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
 
 # TIME_ZONE = 'UTC'
-TIME_ZONE = 'Asia/Yekaterinburg'
+TIME_ZONE = environ.get('TZ', default='Europe/Moscow')
 
 USE_I18N = True
 
 USE_L10N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
@@ -138,6 +134,6 @@ STATIC_URL = '/static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-STATICFILES_DIRS =[
+STATICFILES_DIRS = [
     BASE_DIR / "templates/static",
 ]
