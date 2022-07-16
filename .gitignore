@@ -1,0 +1,7 @@
+.vscode
+.idea
+.DS_Store
+app/venv
+
+app/templates
+app/eprf
