@@ -27,7 +27,7 @@ class Command(BaseCommand):
                 f'postgresql://{credentials["USER"]}:{credentials["PASSWORD"]}@{credentials["HOST"]}:{credentials["PORT"]}/{credentials["NAME"]}')
             total_count_row = 0
             for file in files:
-                df = pd.read_csv(file, sep=';', index_col=0)
+                df = pd.read_csv(file, sep=';', index_col=0, astype=str)
                 print(f'Загрузка файла {file}.  {len(df)} строк')
 
                 start_id = DataSet.objects.all().order_by("-id").first()
