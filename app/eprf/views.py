@@ -5,7 +5,7 @@ import time
 from django.utils import timezone
 from io import BytesIO
 from itertools import combinations
-
+from plotly.offline import plot
 
 import plotly.express as px
 import joblib as joblib
@@ -20,7 +20,8 @@ from pathlib import Path
 
 from eprf.models import ZipCode, DataSet, VedTranscript, russian_stopwords, prod_name_clf, anomaly_detector, reg_clf, \
     ved_thes, ved_dict, pmi_hist, \
-    indexed_data_dict, ft_model_v2, vectorizer, tokenize_with_razdel, IDXS, FEATURES, df_map  # , index # TODO: UNCOMMENT
+    indexed_data_dict, ft_model_v2, vectorizer, tokenize_with_razdel, IDXS, FEATURES, \
+    df_map  # , index # TODO: UNCOMMENT
 from hackathon import settings
 
 
@@ -56,7 +57,7 @@ def main_page(request, *args, **kwargs):
                            'filename': request.FILES['excelFile'].name,
                            'count': len(df), 'time': time.time() - start_time,
                            # **df.sort_values(by=['light', 'Наличие ошибки'], ascending=False).to_dict(orient='split')})
-                           **df.drop(['clean_product_name','light'], axis=1).to_dict(orient='split')})
+                           **df.drop(['clean_product_name', 'light'], axis=1).to_dict(orient='split')})
 
 
 def check_producer(request, *args, **kwargs):
@@ -74,13 +75,41 @@ def load_csv_codes(file):
     ZipCode
 
 
+def get_outliers_reglament(request):
+    outlier_all = df[df['outlier'] == 1]
+    outlier_all = outlier_all[outlier_all['technical_regulations'] != '']
+    outlier_all['technical_regulations'] = outlier_all['technical_regulations'].astype(str).str.split(' ').apply(
+        lambda x: ' '.join(x[:5]))
 
+    outlier_all = outlier_all['technical_regulations'].value_counts().reset_index()
+    outlier_all.loc[outlier_all['technical_regulations'] < 400, 'index'] = 'Другие'
+    outlier_all = outlier_all.groupby('index')['technical_regulations'].sum().reset_index()
+
+    fig = px.pie(outlier_all[outlier_all['index'] != ''], values='technical_regulations', names='index',
+                 title='Выбросы по регламентам')
+    return render(request, "index.html", context={"plot_div": fig})
+
+
+def get_outliers_country(request):
+    outlier_all = df[df['outlier'] == 1]
+    outlier_all = outlier_all[outlier_all['producer_country'] != '']
+    outlier_all['producer_country'] = outlier_all['producer_country'].astype(str).str.split(' ').apply(
+        lambda x: ' '.join(x[:5]))
+
+    outlier_all = outlier_all['producer_country'].value_counts().reset_index()
+    outlier_all.loc[outlier_all['producer_country'] < 1000, 'index'] = 'Другие'
+    outlier_all = outlier_all.groupby('index')['producer_country'].sum().reset_index()
+
+    fig = px.pie(outlier_all[outlier_all['index'] != ''], values='producer_country', names='index',
+                 title='Выбросы по странам')
+    return render(request, "index.html", context={"plot_div": fig})
 
 
 def get_map(request, *args, **kwargs):
     # sample = df_map.copy()
 
-    hover_data = df_map[["producer_country", "producer_name", "lab_name", "ved_code_id"]] \
+
+    hover_data = pd.concat([df_map[df_map['outlier']==1].sample(3000), df_map[df_map['outlier']==0].sample(7000)])[["producer_country", "producer_name", "lab_name", "ved_code_id"]] \
         .drop_duplicates().reset_index(drop=True)
 
     fig = px.scatter_geo(
@@ -95,11 +124,45 @@ def get_map(request, *args, **kwargs):
         opacity=.5
     )
     fig.update(layout_coloraxis_showscale=False)
-    from plotly.offline import plot
+
     plot_div = plot(fig,
                     output_type='div')
-    return render(request, "check_producer.html", context={"plot_div": plot_div})
 
+    # get_outliers_reglament
+    outlier_all = df_map[df_map['outlier'] == 1]
+    outlier_all = outlier_all[outlier_all['product_group'] != '']
+    outlier_all['product_group'] = outlier_all['product_group'].astype(str).str.split(' ').apply(
+        lambda x: ' '.join(x[:5]))
+
+    outlier_all = outlier_all['product_group'].value_counts().reset_index()
+    outlier_all.loc[outlier_all['product_group'] < 700, 'index'] = 'Другие'
+    outlier_all = outlier_all.groupby('index')['product_group'].sum().reset_index()
+
+    fig1 = px.pie(outlier_all[outlier_all['index'] != ''], values='product_group', names='index',
+                 title='Выбросы по категориям продукции')
+
+    # get_outliers_country
+    outlier_all = df_map[df_map['outlier'] == 1]
+    outlier_all = outlier_all[outlier_all['technical_regulations'] != '']
+    outlier_all['technical_regulations'] = outlier_all['technical_regulations'].astype(str).str.split(' ').apply(
+        lambda x: ' '.join(x[:5]))
+
+    outlier_all = outlier_all['technical_regulations'].value_counts().reset_index()
+    outlier_all.loc[outlier_all['technical_regulations'] < 400, 'index'] = 'Другие'
+    outlier_all = outlier_all.groupby('index')['technical_regulations'].sum().reset_index()
+
+    fig2 = px.pie(outlier_all[outlier_all['index'] != ''], values='technical_regulations', names='index',
+                 title='Выбросы по регламентам')
+    countries = DataSet.objects.distinct('producer_country').all()
+    ved_groups = VedTranscript.objects.distinct('GRUPPA').all()
+    labs = DataSet.objects.distinct('lab_name').all()
+
+    return render(request, "check_producer.html", {'filterCountries': countries,
+                                                           'filterVedGroups': ved_groups,
+                                                           'filterLabs': labs }, context={"plot_div": plot_div,
+                                                           'get_outliers_reglament': plot(fig1, output_type='div'),
+                                                           'get_outliers_country': plot(fig2, output_type='div'),
+                                                           })
 
 
 def get_detail_sets(request, *args, **kwargs):
@@ -323,7 +386,7 @@ def single_check(request, *args, **kwargs):
             inputSubcategoryId = data.get('reglament_name')
 
             query = pd.DataFrame(data={
-                'Номер продукции': [1,],
+                'Номер продукции': [1, ],
                 'Общее наименование продукции': [inputProductName, ],
                 'Группа продукции': [inputProductCode, ],
                 'Коды ТН ВЭД ЕАЭС': [inputVED, ],
@@ -346,7 +409,6 @@ def single_check(request, *args, **kwargs):
                 predict_reg)
             # TODO: UNCOMMENT
             # query['Коды ТН ВЭД ЕАЭС_predicted'] = get_ved(vectors_ft)
-
 
             # query['light'] = data['Наличие ошибки'].map(
             #     {1: 3, 0: 1})  # Зеленый - 0, аномалий нет, 3 - красный - аномалии

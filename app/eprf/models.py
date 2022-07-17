@@ -114,7 +114,6 @@ class VedTranscript(models.Model):
 
 map_path = os.path.join(settings.BASE_DIR, 'resources/datasets/', 'db_file.csv')
 df_map = pd.read_csv(map_path, sep=";").drop("Unnamed: 0", axis=1)
-df_map = pd.concat([df_map[df_map['outlier']==1].sample(3000), df_map[df_map['outlier']==0].sample(7000)])
 df_map[["product_number", "GRUPPA", "TOV_POZ", "SUB_POZ"]] = \
     df_map[["product_number", "GRUPPA", "TOV_POZ", "SUB_POZ"]].astype(str)
 df_map["Аномалия"] = df_map["outlier"].replace(0, "Нет").replace(1, "Да")

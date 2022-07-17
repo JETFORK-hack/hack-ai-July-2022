@@ -22,13 +22,22 @@
 {% load static %}
 
 {% block content %}
-<h1>Проверка производителя</h1>
+<h1>Карта безопасной продукции</h1>
 <div>
     {#        <div>Воспользуйтесь фильтрами </div>#}
-    <div id="map" ></div>
+    <div id="map"></div>
+    {% autoescape off %}
+    {{ get_outliers_country }}
+    {% endautoescape %}
+    {% autoescape off %}
+    {{ get_outliers_reglament }}
+    {% endautoescape %}
+
     {% autoescape off %}
     {{ plot_div }}
     {% endautoescape %}
+
+
 </div>
 {% endblock %}
 
@@ -158,44 +167,44 @@
 
     <div id="filterCountryMessages" class="m-2"></div>
 
-{##}
-{#    <label for="inputSubcategory" class="form-label">ТН-ВЕД</label>#}
-{#    <label for="inputSubcategory" class="form-label">ТН-ВЕД раздел</label>#}
-{#    <div class="col col-md m-2">#}
-{#        <input class="form-control" list="dataListSubcategory" id="inputSubcategory"#}
-{#               placeholder="00" name="tableName"#}
-{#               onkeydown="return event.key != 'Enter';"#}
-{#               onchange="">#}
-{#    </div>#}
-{#    <label for="inputSubcategory" class="form-label">ТН-ВЕД группа</label>#}
-{#    <div class="col col-md m-2">#}
-{#        <input class="form-control" list="dataListSubcategory" id="inputSubcategory"#}
-{#               placeholder="00" name="tableName"#}
-{#               onkeydown="return event.key != 'Enter';"#}
-{#               onchange="">#}
-{#    </div>#}
-{##}
-{#    <label for="inputCategory" class="form-label">Наименование ТН-ВЕД</label>#}
-{#    <input class="form-control" list="dataListCategory" id="inputCategory"#}
-{#           placeholder="Кликните, чтобы выбрать или начните вводить" name="inputCategory"#}
-{#           onkeydown="return event.key != 'Enter';"#}
-{#           onchange="listDatabaseFields()">#}
-{#    <div id="divProductNameMessages" class="m-2"></div>#}
-{##}
-{#    <label for="inputCategory" class="form-label">Производитель</label>#}
-{#    <input class="form-control" list="dataListCategory" id="inputCategory"#}
-{#           placeholder="Кликните, чтобы выбрать или начните вводить" name="inputCategory"#}
-{#           onkeydown="return event.key != 'Enter';"#}
-{#           onchange="listDatabaseFields()">#}
-{#    <div id="divProductNameMessages" class="m-2"></div>#}
-{##}
-{#    <label for="inputCategory" class="form-label">Лаборатория</label>#}
-{#    <input class="form-control" list="dataListCategory" id="inputCategory"#}
-{#           placeholder="Кликните, чтобы выбрать или начните вводить" name="inputCategory"#}
-{#           onkeydown="return event.key != 'Enter';"#}
-{#           onchange="listDatabaseFields()">#}
-{#    <div id="divProductNameMessages" class="m-2"></div>#}
-{##}
-{#    <div>Все, ошибка, без ошибки</div>#}
+    {##}
+    {#    <label for="inputSubcategory" class="form-label">ТН-ВЕД</label>#}
+    {#    <label for="inputSubcategory" class="form-label">ТН-ВЕД раздел</label>#}
+    {#    <div class="col col-md m-2">#}
+    {#        <input class="form-control" list="dataListSubcategory" id="inputSubcategory"#}
+    {#               placeholder="00" name="tableName"#}
+    {#               onkeydown="return event.key != 'Enter';"#}
+    {#               onchange="">#}
+    {#    </div>#}
+    {#    <label for="inputSubcategory" class="form-label">ТН-ВЕД группа</label>#}
+    {#    <div class="col col-md m-2">#}
+    {#        <input class="form-control" list="dataListSubcategory" id="inputSubcategory"#}
+    {#               placeholder="00" name="tableName"#}
+    {#               onkeydown="return event.key != 'Enter';"#}
+    {#               onchange="">#}
+    {#    </div>#}
+    {##}
+    {#    <label for="inputCategory" class="form-label">Наименование ТН-ВЕД</label>#}
+    {#    <input class="form-control" list="dataListCategory" id="inputCategory"#}
+    {#           placeholder="Кликните, чтобы выбрать или начните вводить" name="inputCategory"#}
+    {#           onkeydown="return event.key != 'Enter';"#}
+    {#           onchange="listDatabaseFields()">#}
+    {#    <div id="divProductNameMessages" class="m-2"></div>#}
+    {##}
+    {#    <label for="inputCategory" class="form-label">Производитель</label>#}
+    {#    <input class="form-control" list="dataListCategory" id="inputCategory"#}
+    {#           placeholder="Кликните, чтобы выбрать или начните вводить" name="inputCategory"#}
+    {#           onkeydown="return event.key != 'Enter';"#}
+    {#           onchange="listDatabaseFields()">#}
+    {#    <div id="divProductNameMessages" class="m-2"></div>#}
+    {##}
+    {#    <label for="inputCategory" class="form-label">Лаборатория</label>#}
+    {#    <input class="form-control" list="dataListCategory" id="inputCategory"#}
+    {#           placeholder="Кликните, чтобы выбрать или начните вводить" name="inputCategory"#}
+    {#           onkeydown="return event.key != 'Enter';"#}
+    {#           onchange="listDatabaseFields()">#}
+    {#    <div id="divProductNameMessages" class="m-2"></div>#}
+    {##}
+    {#    <div>Все, ошибка, без ошибки</div>#}
     {% csrf_token %}
 {% endblock %}
