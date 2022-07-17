@@ -19,10 +19,10 @@ import json
 from pathlib import Path
 
 from eprf.models import ZipCode, DataSet, VedTranscript
-from hackathon.wsgi import russian_stopwords, prod_name_clf, anomaly_detector, reg_clf, \
+from hackathon.wsgi import russian_stopwords, prod_name_clf, anomaly_detector, \
     ved_thes, ved_dict, pmi_hist, \
     indexed_data_dict, vectorizer, tokenize_with_razdel, IDXS, FEATURES, \
-    df_map#,ft_model_v2, index # TODO: UNCOMMENT
+    df_map, reg_clf, ft_model_v2, index  # TODO: UNCOMMENT
 from hackathon import settings
 
 
@@ -106,8 +106,8 @@ def get_outliers_country(request):
 def get_map(request, *args, **kwargs):
     # sample = df_map.copy()
 
-
-    hover_data = pd.concat([df_map[df_map['outlier']==1].sample(3000), df_map[df_map['outlier']==0].sample(7000)])[["producer_country", "producer_name", "lab_name", "ved_code_id"]] \
+    hover_data = pd.concat([df_map[df_map['outlier'] == 1].sample(3000), df_map[df_map['outlier'] == 0].sample(7000)])[
+        ["producer_country", "producer_name", "lab_name", "ved_code_id"]] \
         .drop_duplicates().reset_index(drop=True)
 
     fig = px.scatter_geo(
@@ -137,7 +137,7 @@ def get_map(request, *args, **kwargs):
     outlier_all = outlier_all.groupby('index')['product_group'].sum().reset_index()
 
     fig1 = px.pie(outlier_all[outlier_all['index'] != ''], values='product_group', names='index',
-                 title='Выбросы по категориям продукции')
+                  title='Выбросы по категориям продукции')
 
     # get_outliers_country
     outlier_all = df_map[df_map['outlier'] == 1]
@@ -150,18 +150,18 @@ def get_map(request, *args, **kwargs):
     outlier_all = outlier_all.groupby('index')['technical_regulations'].sum().reset_index()
 
     fig2 = px.pie(outlier_all[outlier_all['index'] != ''], values='technical_regulations', names='index',
-                 title='Выбросы по регламентам')
+                  title='Выбросы по регламентам')
     countries = DataSet.objects.distinct('producer_country').all()
     ved_groups = VedTranscript.objects.distinct('GRUPPA').all()
-    labs = DataSet.objects.distinct('lab_name').all()
+    labs = DataSet.objects.distinct('lab_name').all()[:100]
 
     return render(request, "check_producer.html", {"plot_div": plot_div,
-                                                           'get_outliers_reglament': plot(fig1, output_type='div'),
-                                                           'get_outliers_country': plot(fig2, output_type='div'),
-                                                           'filterCountries': countries,
-                                                           'filterVedGroups': ved_groups,
-                                                           'filterLabs': labs
-                                                           })
+                                                   'get_outliers_reglament': plot(fig1, output_type='div'),
+                                                   'get_outliers_country': plot(fig2, output_type='div'),
+                                                   'filterCountries': countries,
+                                                   'filterVedGroups': ved_groups,
+                                                   'filterLabs': labs
+                                                   })
 
 
 def get_detail_sets(request, *args, **kwargs):
@@ -326,13 +326,12 @@ def predict_reg(s):
 
 
 # TODO: UNCOMMENT
-# def get_ved(data):
-#     # vectors = np.array([ft_model_v2.get_sentence_vector(text) for text in data['clean_product_name']])
-#     neighbours = index.knnQueryBatch(data, k=1, num_threads=10)
-#     data['index'] = np.array(neighbours)[:, 0].reshape(-1)
-#     data['distance'] = np.array(neighbours)[:, 1].reshape(-1)
-#     veds = data['index'].map(indexed_data_dict).apply(lambda x: ''.join(x))
-#     return veds
+def get_ved(data, ft_vectors):
+    neighbours = index.knnQueryBatch(ft_vectors, k=1, num_threads=10)
+    data['index'] = np.array(neighbours)[:, 0].reshape(-1)
+    data['distance'] = np.array(neighbours)[:, 1].reshape(-1)
+    veds = data['index'].map(indexed_data_dict).apply(lambda x: ''.join(x))
+    return veds
 
 
 def df_check(file) -> pd.DataFrame:
@@ -362,13 +361,15 @@ def df_check(file) -> pd.DataFrame:
         .str.lower() \
         .apply(lambda x: ' '.join(delete_stopwords(delete_punctuation((x)))))
     vectors = vectorizer.transform(df['clean_product_name'])
-    # vectors_ft = np.array([ft_model_v2.get_sentence_vector(text) for text in df['clean_product_name']])
+    vectors_ft = np.array([ft_model_v2.get_sentence_vector(text) for text in df['clean_product_name']])
+    # TODO: UNCOMMENT
+    df['Коды ТН ВЭД ЕАЭС_predicted'] = get_ved(df, vectors_ft)
 
     df['Наличие ошибки'] = predict_anomaly(df)
     df['Группа продукции_predicted'] = get_product_name(vectors)
     df['Технические регламенты_predicted'] = df["Общее наименование продукции"].fillna("").apply(predict_reg)
-    # TODO: UNCOMMENT
-    # df['Коды ТН ВЭД ЕАЭС_predicted'] = get_ved(vectors_ft)
+
+
 
     df['light'] = df['Наличие ошибки'].map({1: 3, 0: 1})  # Зеленый - 0, аномалий нет, 3 - красный - аномалии
 
@@ -402,12 +403,15 @@ def single_check(request, *args, **kwargs):
                 .apply(lambda x: ' '.join(delete_stopwords(delete_punctuation((x)))))
 
             vectors = vectorizer.transform(query['clean_product_name'])
-            # vectors_ft = np.array([ft_model_v2.get_sentence_vector(text) for text in query['clean_product_name']])
+            vectors_ft = np.array([ft_model_v2.get_sentence_vector(text) for text in query['clean_product_name']])
             query['Группа продукции_predicted'] = get_product_name(vectors)
+
+            # TODO: UNCOMMENT
+            query['Коды ТН ВЭД ЕАЭС_predicted'] = get_ved(query, vectors_ft)
+
             query['Технические регламенты_predicted'] = query["Общее наименование продукции"].fillna("").apply(
                 predict_reg)
-            # TODO: UNCOMMENT
-            # query['Коды ТН ВЭД ЕАЭС_predicted'] = get_ved(vectors_ft)
+
 
             # query['light'] = data['Наличие ошибки'].map(
             #     {1: 3, 0: 1})  # Зеленый - 0, аномалий нет, 3 - красный - аномалии
@@ -416,7 +420,7 @@ def single_check(request, *args, **kwargs):
                 'Группа продукции': query.loc[0, 'Группа продукции_predicted'],
                 'Технические регламенты': query.loc[0, 'Технические регламенты_predicted'],
                 # TODO: UNCOMMENT
-                # 'Коды ТН ВЭД': query.loc[0, 'Коды ТН ВЭД ЕАЭС_predicted'],
+                'Коды ТН ВЭД': query.loc[0, 'Коды ТН ВЭД ЕАЭС_predicted'],
             }})
         except Exception as e:
             print(e)

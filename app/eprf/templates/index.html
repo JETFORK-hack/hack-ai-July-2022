@@ -223,7 +223,11 @@
 
                 let category_name = $('#product_group').val();
                 let reglament_name = $('#technical_regulations').val();
-                let VED = $('#ved-code').val().split('  ').join('').padEnd(10, '0');
+                let vedd = $('#ved-code').val().split('  ').join('');
+                let VED = '';
+                if (Number(vedd)) {
+                    VED = $('#ved-code').val().split('  ').join('').padEnd(10, '0');
+                }
                 sendData = {
                     'product_name': product_name,
                     'category_name': category_name,
@@ -259,7 +263,7 @@
                             console.log(data)
                         }
                     }).catch((error) => {
-                        console.log(error);
+                    console.log(error);
                 });
             });
         })

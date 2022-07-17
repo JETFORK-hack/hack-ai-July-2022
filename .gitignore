@@ -11,3 +11,4 @@ materials/*
 app/__pycache__
 app/hackathon/__pycache__/
 app/eprf/ml/*
+app/resources/datasets/*
