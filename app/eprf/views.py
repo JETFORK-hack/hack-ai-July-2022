@@ -18,18 +18,17 @@ import json
 
 from pathlib import Path
 
-from eprf.models import ZipCode, DataSet, VedTranscript, russian_stopwords, prod_name_clf, anomaly_detector, reg_clf, \
+from eprf.models import ZipCode, DataSet, VedTranscript
+from hackathon.wsgi import russian_stopwords, prod_name_clf, anomaly_detector, reg_clf, \
     ved_thes, ved_dict, pmi_hist, \
     indexed_data_dict, ft_model_v2, vectorizer, tokenize_with_razdel, IDXS, FEATURES, \
-    df_map  # , index # TODO: UNCOMMENT
+    df_map, index # TODO: UNCOMMENT
 from hackathon import settings
 
 
 def main_page(request, *args, **kwargs):
     if request.method == 'GET':
         df = pd.read_parquet(os.path.join(settings.BASE_DIR, 'resources', 'dicts.parquet'), engine='fastparquet')
-        # category_filters = Category.objects.distinct('code', 'text').filter(removed=False, sub_code__contains='.0')
-        # subcategory_filters = Category.objects.distinct('sub_code', 'sub_text').filter(removed=False)
         return render(request, 'index.html', {'product_groups': df['product_group'].dropna().to_list(),
                                               'technical_regulations': df['technical_regulations'].dropna().to_list(),
                                               })
@@ -56,7 +55,6 @@ def main_page(request, *args, **kwargs):
                           {'now': timezone.now().strftime('%d %B %Y %H:%M:%S'),
                            'filename': request.FILES['excelFile'].name,
                            'count': len(df), 'time': time.time() - start_time,
-                           # **df.sort_values(by=['light', 'Наличие ошибки'], ascending=False).to_dict(orient='split')})
                            **df.drop(['clean_product_name', 'light'], axis=1).to_dict(orient='split')})
 
 
@@ -157,11 +155,12 @@ def get_map(request, *args, **kwargs):
     ved_groups = VedTranscript.objects.distinct('GRUPPA').all()
     labs = DataSet.objects.distinct('lab_name').all()
 
-    return render(request, "check_producer.html", {'filterCountries': countries,
-                                                           'filterVedGroups': ved_groups,
-                                                           'filterLabs': labs }, context={"plot_div": plot_div,
+    return render(request, "check_producer.html", {"plot_div": plot_div,
                                                            'get_outliers_reglament': plot(fig1, output_type='div'),
                                                            'get_outliers_country': plot(fig2, output_type='div'),
+                                                           'filterCountries': countries,
+                                                           'filterVedGroups': ved_groups,
+                                                           'filterLabs': labs
                                                            })
 
 
@@ -327,13 +326,13 @@ def predict_reg(s):
 
 
 # TODO: UNCOMMENT
-# def get_ved(data):
-#     vectors = np.array([ft_model_v2.get_sentence_vector(text) for text in data['clean_product_name']])
-#     neighbours = index.knnQueryBatch(vectors, k=1, num_threads=10)
-#     data['index'] = np.array(neighbours)[:, 0].reshape(-1)
-#     # data['distance'] = np.array(neighbours)[:, 1].reshape(-1)
-#     veds = data['index'].map(indexed_data_dict).apply(lambda x: ''.join(x))
-#     return veds
+def get_ved(data):
+    # vectors = np.array([ft_model_v2.get_sentence_vector(text) for text in data['clean_product_name']])
+    neighbours = index.knnQueryBatch(data, k=1, num_threads=10)
+    data['index'] = np.array(neighbours)[:, 0].reshape(-1)
+    data['distance'] = np.array(neighbours)[:, 1].reshape(-1)
+    veds = data['index'].map(indexed_data_dict).apply(lambda x: ''.join(x))
+    return veds
 
 
 def df_check(file) -> pd.DataFrame:
@@ -369,7 +368,7 @@ def df_check(file) -> pd.DataFrame:
     df['Группа продукции_predicted'] = get_product_name(vectors)
     df['Технические регламенты_predicted'] = df["Общее наименование продукции"].fillna("").apply(predict_reg)
     # TODO: UNCOMMENT
-    # df['Коды ТН ВЭД ЕАЭС_predicted'] = get_ved(vectors_ft)
+    df['Коды ТН ВЭД ЕАЭС_predicted'] = get_ved(vectors_ft)
 
     df['light'] = df['Наличие ошибки'].map({1: 3, 0: 1})  # Зеленый - 0, аномалий нет, 3 - красный - аномалии
 
@@ -403,12 +402,12 @@ def single_check(request, *args, **kwargs):
                 .apply(lambda x: ' '.join(delete_stopwords(delete_punctuation((x)))))
 
             vectors = vectorizer.transform(query['clean_product_name'])
-            # vectors_ft = np.array([ft_model_v2.get_sentence_vector(text) for text in query['clean_product_name']])
+            vectors_ft = np.array([ft_model_v2.get_sentence_vector(text) for text in query['clean_product_name']])
             query['Группа продукции_predicted'] = get_product_name(vectors)
             query['Технические регламенты_predicted'] = query["Общее наименование продукции"].fillna("").apply(
                 predict_reg)
             # TODO: UNCOMMENT
-            # query['Коды ТН ВЭД ЕАЭС_predicted'] = get_ved(vectors_ft)
+            query['Коды ТН ВЭД ЕАЭС_predicted'] = get_ved(vectors_ft)
 
             # query['light'] = data['Наличие ошибки'].map(
             #     {1: 3, 0: 1})  # Зеленый - 0, аномалий нет, 3 - красный - аномалии
@@ -417,7 +416,7 @@ def single_check(request, *args, **kwargs):
                 'Группа продукции': query.loc[0, 'Группа продукции_predicted'],
                 'Технические регламенты': query.loc[0, 'Технические регламенты_predicted'],
                 # TODO: UNCOMMENT
-                # 'Коды ТН ВЭД': query.loc[0, 'Коды ТН ВЭД ЕАЭС_predicted'],
+                'Коды ТН ВЭД': query.loc[0, 'Коды ТН ВЭД ЕАЭС_predicted'],
             }})
         except Exception as e:
             print(e)

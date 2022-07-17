@@ -37,7 +37,7 @@ services:
       - db:db
 #    networks:
 #      - djangonetwork
-#    restart: always
+    restart: on-failure
 #
 #
 #networks:
