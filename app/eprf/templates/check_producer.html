@@ -22,11 +22,14 @@
 {% load static %}
 
 {% block content %}
-    <h1>Проверка производителя</h1>
-    <div>
-        {#        <div>Воспользуйтесь фильтрами </div>#}
-        <div id="map" style="width: 100%; height: 500px"></div>
-    </div>
+<h1>Проверка производителя</h1>
+<div>
+    {#        <div>Воспользуйтесь фильтрами </div>#}
+    <div id="map" ></div>
+    {% autoescape off %}
+    {{ plot_div }}
+    {% endautoescape %}
+</div>
 {% endblock %}
 
 {% block scripts %}
@@ -135,7 +138,8 @@
             <option value="{{ filterCountry.producer_country }}">{{ filterCountry.producer_country }}</option>
         {% endfor %}
     </select>
-    <select class="selectpicker m-2" id="filter1VedGroups" data-live-search="true" title="Группа ТН-ВЕД" data-width="95%">
+    <select class="selectpicker m-2" id="filter1VedGroups" data-live-search="true" title="Группа ТН-ВЕД"
+            data-width="95%">
         {% for filterVedGroup in filterVedGroups %}
             <option value="{{ filterVedGroup.GRUPPA }}"
                     data-subtext="{{ filterVedGroup.GRUPPA_text }}">{{ filterVedGroup.GRUPPA }}</option>
@@ -154,44 +158,44 @@
 
     <div id="filterCountryMessages" class="m-2"></div>
 
-
-    <label for="inputSubcategory" class="form-label">ТН-ВЕД</label>
-    <label for="inputSubcategory" class="form-label">ТН-ВЕД раздел</label>
-    <div class="col col-md m-2">
-        <input class="form-control" list="dataListSubcategory" id="inputSubcategory"
-               placeholder="00" name="tableName"
-               onkeydown="return event.key != 'Enter';"
-               onchange="">
-    </div>
-    <label for="inputSubcategory" class="form-label">ТН-ВЕД группа</label>
-    <div class="col col-md m-2">
-        <input class="form-control" list="dataListSubcategory" id="inputSubcategory"
-               placeholder="00" name="tableName"
-               onkeydown="return event.key != 'Enter';"
-               onchange="">
-    </div>
-
-    <label for="inputCategory" class="form-label">Наименование ТН-ВЕД</label>
-    <input class="form-control" list="dataListCategory" id="inputCategory"
-           placeholder="Кликните, чтобы выбрать или начните вводить" name="inputCategory"
-           onkeydown="return event.key != 'Enter';"
-           onchange="listDatabaseFields()">
-    <div id="divProductNameMessages" class="m-2"></div>
-
-    <label for="inputCategory" class="form-label">Производитель</label>
-    <input class="form-control" list="dataListCategory" id="inputCategory"
-           placeholder="Кликните, чтобы выбрать или начните вводить" name="inputCategory"
-           onkeydown="return event.key != 'Enter';"
-           onchange="listDatabaseFields()">
-    <div id="divProductNameMessages" class="m-2"></div>
-
-    <label for="inputCategory" class="form-label">Лаборатория</label>
-    <input class="form-control" list="dataListCategory" id="inputCategory"
-           placeholder="Кликните, чтобы выбрать или начните вводить" name="inputCategory"
-           onkeydown="return event.key != 'Enter';"
-           onchange="listDatabaseFields()">
-    <div id="divProductNameMessages" class="m-2"></div>
-
-    <div>Все, ошибка, без ошибки</div>
+{##}
+{#    <label for="inputSubcategory" class="form-label">ТН-ВЕД</label>#}
+{#    <label for="inputSubcategory" class="form-label">ТН-ВЕД раздел</label>#}
+{#    <div class="col col-md m-2">#}
+{#        <input class="form-control" list="dataListSubcategory" id="inputSubcategory"#}
+{#               placeholder="00" name="tableName"#}
+{#               onkeydown="return event.key != 'Enter';"#}
+{#               onchange="">#}
+{#    </div>#}
+{#    <label for="inputSubcategory" class="form-label">ТН-ВЕД группа</label>#}
+{#    <div class="col col-md m-2">#}
+{#        <input class="form-control" list="dataListSubcategory" id="inputSubcategory"#}
+{#               placeholder="00" name="tableName"#}
+{#               onkeydown="return event.key != 'Enter';"#}
+{#               onchange="">#}
+{#    </div>#}
+{##}
+{#    <label for="inputCategory" class="form-label">Наименование ТН-ВЕД</label>#}
+{#    <input class="form-control" list="dataListCategory" id="inputCategory"#}
+{#           placeholder="Кликните, чтобы выбрать или начните вводить" name="inputCategory"#}
+{#           onkeydown="return event.key != 'Enter';"#}
+{#           onchange="listDatabaseFields()">#}
+{#    <div id="divProductNameMessages" class="m-2"></div>#}
+{##}
+{#    <label for="inputCategory" class="form-label">Производитель</label>#}
+{#    <input class="form-control" list="dataListCategory" id="inputCategory"#}
+{#           placeholder="Кликните, чтобы выбрать или начните вводить" name="inputCategory"#}
+{#           onkeydown="return event.key != 'Enter';"#}
+{#           onchange="listDatabaseFields()">#}
+{#    <div id="divProductNameMessages" class="m-2"></div>#}
+{##}
+{#    <label for="inputCategory" class="form-label">Лаборатория</label>#}
+{#    <input class="form-control" list="dataListCategory" id="inputCategory"#}
+{#           placeholder="Кликните, чтобы выбрать или начните вводить" name="inputCategory"#}
+{#           onkeydown="return event.key != 'Enter';"#}
+{#           onchange="listDatabaseFields()">#}
+{#    <div id="divProductNameMessages" class="m-2"></div>#}
+{##}
+{#    <div>Все, ошибка, без ошибки</div>#}
     {% csrf_token %}
 {% endblock %}

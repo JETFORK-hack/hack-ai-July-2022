@@ -1,13 +1,18 @@
 import json
 import os
 import re
+import time
+from django.utils import timezone
+from io import BytesIO
 from itertools import combinations
 
+
+import plotly.express as px
 import joblib as joblib
 import numpy as np
 import razdel as razdel
 from django.shortcuts import render
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 import pandas as pd
 import json
 
@@ -15,7 +20,7 @@ from pathlib import Path
 
 from eprf.models import ZipCode, DataSet, VedTranscript, russian_stopwords, prod_name_clf, anomaly_detector, reg_clf, \
     ved_thes, ved_dict, pmi_hist, \
-    indexed_data_dict, ft_model_v2, vectorizer, tokenize_with_razdel, IDXS, FEATURES  # , index # TODO: UNCOMMENT
+    indexed_data_dict, ft_model_v2, vectorizer, tokenize_with_razdel, IDXS, FEATURES, df_map  # , index # TODO: UNCOMMENT
 from hackathon import settings
 
 
@@ -28,9 +33,6 @@ def main_page(request, *args, **kwargs):
                                               'technical_regulations': df['technical_regulations'].dropna().to_list(),
                                               })
     else:
-        upload = Upload.objects.create(ipaddress=request.META.get('REMOTE_ADDR'), email='test@test.ts')
-        upload.save()
-
         start_time = time.time()
         try:
             df = df_check(request.FILES['excelFile'])
@@ -53,7 +55,8 @@ def main_page(request, *args, **kwargs):
                           {'now': timezone.now().strftime('%d %B %Y %H:%M:%S'),
                            'filename': request.FILES['excelFile'].name,
                            'count': len(df), 'time': time.time() - start_time,
-                           **df.sort_values(by=['light', 'probability'], ascending=False).to_dict(orient='split')})
+                           # **df.sort_values(by=['light', 'Наличие ошибки'], ascending=False).to_dict(orient='split')})
+                           **df.drop(['clean_product_name','light'], axis=1).to_dict(orient='split')})
 
 
 def check_producer(request, *args, **kwargs):
@@ -69,6 +72,34 @@ def check_producer(request, *args, **kwargs):
 
 def load_csv_codes(file):
     ZipCode
+
+
+
+
+
+def get_map(request, *args, **kwargs):
+    # sample = df_map.copy()
+
+    hover_data = df_map[["producer_country", "producer_name", "lab_name", "ved_code_id"]] \
+        .drop_duplicates().reset_index(drop=True)
+
+    fig = px.scatter_geo(
+        df_map,
+        lat=df_map.producer_latitude,
+        lon=df_map.producer_longitude,
+        color="Аномалия",
+        color_discrete_map={"Нет": "green", "Да": "red"},
+        hover_data=hover_data,
+        # width=1024,
+        height=768,
+        opacity=.5
+    )
+    fig.update(layout_coloraxis_showscale=False)
+    from plotly.offline import plot
+    plot_div = plot(fig,
+                    output_type='div')
+    return render(request, "check_producer.html", context={"plot_div": plot_div})
+
 
 
 def get_detail_sets(request, *args, **kwargs):

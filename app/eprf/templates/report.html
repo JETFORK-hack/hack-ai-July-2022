@@ -31,7 +31,7 @@
             Имя файла: {{ filename }}</p>
         <hr>
         {% for row in data %}
-        <tr {% if row.5 == 3 %}class="table-danger"{% elif row.5 == 2  %}class="table-warning"{% else %}class="table-success"{% endif %}>
+        <tr {% if row.5 == 1 %}class="table-danger"{% else %}class="table-success"{% endif %}>
             {% for cell in row %}
                <td>{{ cell }}</td>
 {#               <td class="table-danger">{{ cell }}</td>#}

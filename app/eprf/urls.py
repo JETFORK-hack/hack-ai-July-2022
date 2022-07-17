@@ -9,4 +9,5 @@ urlpatterns = [
     path('api/v1/check/single', views.single_check, name='single_check'),
     # path('api/check/json', views.report_json, name='report_json'),
     # path('api/check/xlsx', views.report_xlsx, name='report_xlsx'),
+    path('map', views.get_map, name='map'),
 ]
