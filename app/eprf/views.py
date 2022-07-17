@@ -329,7 +329,7 @@ def predict_reg(s):
 # TODO: UNCOMMENT
 def get_ved(data, vectors):
     # vectors = np.array([ft_model_v2.get_sentence_vector(text) for text in data['clean_product_name']])
-    neighbours = index.knnQueryBatch(data, vectors, k=1, num_threads=10)
+    neighbours = index.knnQueryBatch(vectors, k=1, num_threads=10)
     data['index'] = np.array(neighbours)[:, 0].reshape(-1)
     data['distance'] = np.array(neighbours)[:, 1].reshape(-1)
     veds = data['index'].map(indexed_data_dict).apply(lambda x: ''.join(x))
@@ -422,5 +422,5 @@ def single_check(request, *args, **kwargs):
                 'Коды ТН ВЭД': query.loc[0, 'Коды ТН ВЭД ЕАЭС_predicted'],
             }})
         except Exception as e:
-            print(e)
+            raise e
             return JsonResponse({'status': 'error', 'detail': str(e)}, status=500)

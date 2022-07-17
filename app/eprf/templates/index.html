@@ -223,7 +223,10 @@
 
                 let category_name = $('#product_group').val();
                 let reglament_name = $('#technical_regulations').val();
-                let VED = $('#ved-code').val().split('  ').join('').padEnd(10, '0');
+                let VED = '';
+                if (Number($('#ved-code').val().split('  ').join(''))){
+                     let VED = $('#ved-code').val().split('  ').join('').padEnd(10, '0');
+                }
                 sendData = {
                     'product_name': product_name,
                     'category_name': category_name,
@@ -252,8 +255,8 @@
                         if (data['status'] == 'ok') {
                             console.log(data.result);
                             let res = data.result;
-                            let ved = `<li><b>Коды ТН ВЭД:</b> ${res['Коды ТН ВЭД']}</li>` || ''
-                            $('#singleAlert').append(`<div class="alert alert-success" id="singleAlertSuccess"><ul><li><b>Группа продукции:</b> ${res['Группа продукции']}</li><li><b>Технические регламенты:</b> ${res['Технические регламенты']}</li></ul></div>`);
+                            let ved = `<li><b>Коды ТН ВЭД:</b> ${res['Коды ТН ВЭД']}</li>` || '';
+                            $('#singleAlert').append(`<div class="alert alert-success" id="singleAlertSuccess"><ul><li><b>Группа продукции:</b> ${res['Группа продукции']}</li><li><b>Технические регламенты:</b> ${res['Технические регламенты']}</li>${ved}</ul></div>`);
                             $('#formCheckOneButtonLoad').remove();
                         } else {
                             console.log(data)
