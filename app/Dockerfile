@@ -26,6 +26,7 @@ RUN apt-get update && \
 
 ENV LANG ru_RU.UTF-8
 ENV LC_ALL ru_RU.UTF-8
+RUN pip install gunicorn==20.1.0
 
 COPY requirements.txt /app/
 WORKDIR /app
