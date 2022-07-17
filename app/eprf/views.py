@@ -21,9 +21,10 @@ from pathlib import Path
 from eprf.models import ZipCode, DataSet, VedTranscript
 from hackathon.wsgi import russian_stopwords, prod_name_clf, anomaly_detector, reg_clf, \
     ved_thes, ved_dict, pmi_hist, \
-    indexed_data_dict, vectorizer, tokenize_with_razdel, IDXS, FEATURES, \
-    df_map#,ft_model_v2, index # TODO: UNCOMMENT
+    indexed_data_dict, vectorizer, IDXS, FEATURES, \
+    df_map, ft_model_v2, index # TODO: UNCOMMENT
 from hackathon import settings
+from manage import tokenize_with_razdel
 
 
 def main_page(request, *args, **kwargs):
@@ -203,10 +204,10 @@ def delete_punctuation(s):
     return re.sub(r'[{}\s+]'.format(''.join(symbols)), u' ', s.replace('\xad', ' '))
 
 
-def tokenize_with_razdel(text):
-    tokens = [token.text for token in razdel.tokenize(text)]
-
-    return tokens
+#def tokenize_with_razdel(text):
+#    tokens = [token.text for token in razdel.tokenize(text)]
+#
+#    return tokens
 
 
 def get_product_name(data):
@@ -326,13 +327,13 @@ def predict_reg(s):
 
 
 # TODO: UNCOMMENT
-# def get_ved(data):
-#     # vectors = np.array([ft_model_v2.get_sentence_vector(text) for text in data['clean_product_name']])
-#     neighbours = index.knnQueryBatch(data, k=1, num_threads=10)
-#     data['index'] = np.array(neighbours)[:, 0].reshape(-1)
-#     data['distance'] = np.array(neighbours)[:, 1].reshape(-1)
-#     veds = data['index'].map(indexed_data_dict).apply(lambda x: ''.join(x))
-#     return veds
+def get_ved(data, vectors):
+    # vectors = np.array([ft_model_v2.get_sentence_vector(text) for text in data['clean_product_name']])
+    neighbours = index.knnQueryBatch(data, vectors, k=1, num_threads=10)
+    data['index'] = np.array(neighbours)[:, 0].reshape(-1)
+    data['distance'] = np.array(neighbours)[:, 1].reshape(-1)
+    veds = data['index'].map(indexed_data_dict).apply(lambda x: ''.join(x))
+    return veds
 
 
 def df_check(file) -> pd.DataFrame:
@@ -362,13 +363,14 @@ def df_check(file) -> pd.DataFrame:
         .str.lower() \
         .apply(lambda x: ' '.join(delete_stopwords(delete_punctuation((x)))))
     vectors = vectorizer.transform(df['clean_product_name'])
-    # vectors_ft = np.array([ft_model_v2.get_sentence_vector(text) for text in df['clean_product_name']])
+    vectors_ft = np.array([ft_model_v2.get_sentence_vector(text) for text in df['clean_product_name']])
 
+    # TODO: UNCOMMENT
+    df['Коды ТН ВЭД ЕАЭС_predicted'] = get_ved(df, vectors_ft)
     df['Наличие ошибки'] = predict_anomaly(df)
     df['Группа продукции_predicted'] = get_product_name(vectors)
     df['Технические регламенты_predicted'] = df["Общее наименование продукции"].fillna("").apply(predict_reg)
-    # TODO: UNCOMMENT
-    # df['Коды ТН ВЭД ЕАЭС_predicted'] = get_ved(vectors_ft)
+
 
     df['light'] = df['Наличие ошибки'].map({1: 3, 0: 1})  # Зеленый - 0, аномалий нет, 3 - красный - аномалии
 
@@ -402,12 +404,13 @@ def single_check(request, *args, **kwargs):
                 .apply(lambda x: ' '.join(delete_stopwords(delete_punctuation((x)))))
 
             vectors = vectorizer.transform(query['clean_product_name'])
-            # vectors_ft = np.array([ft_model_v2.get_sentence_vector(text) for text in query['clean_product_name']])
+            vectors_ft = np.array([ft_model_v2.get_sentence_vector(text) for text in query['clean_product_name']])
+            # TODO: UNCOMMENT
+            query['Коды ТН ВЭД ЕАЭС_predicted'] = get_ved(query, vectors_ft)            
             query['Группа продукции_predicted'] = get_product_name(vectors)
             query['Технические регламенты_predicted'] = query["Общее наименование продукции"].fillna("").apply(
                 predict_reg)
-            # TODO: UNCOMMENT
-            # query['Коды ТН ВЭД ЕАЭС_predicted'] = get_ved(vectors_ft)
+
 
             # query['light'] = data['Наличие ошибки'].map(
             #     {1: 3, 0: 1})  # Зеленый - 0, аномалий нет, 3 - красный - аномалии
@@ -416,7 +419,7 @@ def single_check(request, *args, **kwargs):
                 'Группа продукции': query.loc[0, 'Группа продукции_predicted'],
                 'Технические регламенты': query.loc[0, 'Технические регламенты_predicted'],
                 # TODO: UNCOMMENT
-                # 'Коды ТН ВЭД': query.loc[0, 'Коды ТН ВЭД ЕАЭС_predicted'],
+                'Коды ТН ВЭД': query.loc[0, 'Коды ТН ВЭД ЕАЭС_predicted'],
             }})
         except Exception as e:
             print(e)

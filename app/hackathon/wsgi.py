@@ -21,7 +21,7 @@ import os
 from catboost import CatBoostClassifier
 import pandas as pd
 import fasttext
-# import nmslib
+import nmslib
 import razdel
 import joblib, pickle
 from hackathon import settings
@@ -44,10 +44,10 @@ with open(os.path.join(path, 'ved_dict.pickle'), "rb") as handle:
 
 pmi_hist = pd.read_csv(os.path.join(path, 'pmi_features.csv'), sep=';')
 pmi_hist[pmi_hist.columns[:5]] = pmi_hist[pmi_hist.columns[:5]].astype(str)
-# index = nmslib.init(method='napp', space='cosinesimil')
-# index.loadIndex(os.path.join(path, 'index_ved'), load_data=True)
+index = nmslib.init(method='napp', space='cosinesimil')
+index.loadIndex(os.path.join(path, 'index_ved'), load_data=True)
 indexed_data_dict = joblib.load(os.path.join(path, 'index_map.pkl'))
-# ft_model_v2 = fasttext.load_model(os.path.join(path, 'fb_model_v2.bin'))
+ft_model_v2 = fasttext.load_model(os.path.join(path, 'fb_model_v2.bin'))
 
 
 def tokenize_with_razdel(text):
