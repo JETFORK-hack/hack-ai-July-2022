@@ -25,13 +25,13 @@ SECRET_KEY = 'django-insecure-5bp5u!!*p6d#)mka+#p268o76@rm812ftxjf-s1dmhgxv2l-ol
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = int(environ.get('DEBUG', default=1))
 
-ALLOWED_HOSTS = environ.get('MACHINE_IP', default='*').split(' ')
+ALLOWED_HOSTS = environ.get('DJANGO_ALLOWED_HOSTS', default='*').split(' ')
 
 # Application definition
 
 INSTALLED_APPS = [
     'eprf.apps.EprfConfig',
-    'django.contrib.admin',
+    # 'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -82,12 +82,17 @@ WSGI_APPLICATION = 'hackathon.wsgi.application'
 
 DATABASES = {
     'default': {
+        # 'ENGINE': 'django.db.backends.postgresql',
+        # 'NAME': 'postgres',
+        # 'USER': 'postgres',
+        # 'PASSWORD': 'jetfork2022hack',
+        # 'HOST': 'db',
+        # 'PORT': '5432',
         'ENGINE': environ.get('SQL_ENGINE', default='django.db.backends.postgresql'),
         'NAME': environ.get('POSTGRES_DB', default='postgres'),
         'USER': environ.get('POSTGRES_USER', default='postgres'),
         'PASSWORD': environ.get('POSTGRES_PASSWORD', default='jetfork2022kack'),
         'HOST': environ.get('DB_DOCKER_HOST', default='localhost'),
-        # 'HOST': 'db',
         'PORT': environ.get('DB_PORT', default='5432'),
     }
 }

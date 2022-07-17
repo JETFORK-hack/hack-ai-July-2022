@@ -27,12 +27,25 @@ class DataSet(models.Model):
     lab_name = models.TextField(null=True, blank=True)
     requester_name = models.TextField(null=True, blank=True)
     requester_address = models.TextField(null=True, blank=True)
-    requester_zip = models.CharField(max_length=10, null=True, blank=True)
+    requester_zipcode = models.CharField(max_length=10, null=True, blank=True)
     producer_name = models.TextField(null=True, blank=True)
     producer_country = models.TextField(null=True, blank=True)
     producer_address = models.TextField(null=True, blank=True)
-    producer_zip = models.CharField(max_length=10, null=True, blank=True)
-    check_status = models.IntegerField(default=None, null=True, blank=True)
+
+    producer_zipcode = models.CharField(max_length=10, null=True, blank=True)
+    producer_country_code = models.TextField(null=True, blank=True)
+    requester_country_code = models.TextField(null=True, blank=True)
+    requester_latitude = models.TextField(null=True, blank=True)
+    requester_longitude = models.TextField(null=True, blank=True)
+    producer_latitude = models.TextField(null=True, blank=True)
+    producer_longitude = models.TextField(null=True, blank=True)
+    GRUPPA = models.TextField(null=True, blank=True)
+    GRUPPA_text = models.TextField(null=True, blank=True) # NAIM2
+    TOV_POZ =models.TextField(null=True, blank=True)
+    TOV_POZ_text = models.TextField(null=True, blank=True) # NAIM3
+    SUB_POZ = models.TextField(null=True, blank=True)
+    SUB_POZ_text = models.TextField(null=True, blank=True) # NAIM4
+    outlier = models.IntegerField(default=None, null=True, blank=True)
 
 
 class VedTranscript(models.Model):

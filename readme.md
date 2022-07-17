@@ -16,19 +16,13 @@
 
 
 # Настройка после запуска
-1. Необходимо загрузить **список кодов**. Предорительно необходимо вставить файлы (.csv) в папку. Убедитесь, что файлы есть в папке `app/resources/zipcodes`.<br>
-Для этого необходимо подключиться к контейнеру и выполнить команду
+1. Загрузка данных **датасета** в БД. Убедитесь, что файл или файлы есть в папке `app/resources/datasets`
 ```shell
-python manage.py load_codes
+docker exec -it hack_app python manage.py load_datasets
 ```
 
-2. Загрузка данных **датасета** в БД. Убедитесь, что файл или файлы есть в папке `app/resources/datasets`
+2. Загрузка **словарей-расшифровок ВЕД** в БД. Убедитесь, что файл или файлы есть в папке `app/resources/veds`
 ```shell
-python manage.py load_datasets
-```
-
-3. Загрузка **словарей-расшифровок ВЕД** в БД. Убедитесь, что файл или файлы есть в папке `app/resources/veds`
-```shell
-python manage.py load_veds
+docker exec -it hack_app python manage.py load_veds
 ```
 
