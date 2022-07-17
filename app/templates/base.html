@@ -26,6 +26,7 @@
     <!-- (Optional) Latest compiled and minified JavaScript translation files -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.14.0-beta3/dist/js/i18n/defaults-ru_RU.js"></script>
 
+    <script src="https://unpkg.com/imask"></script>
     {% block headers %}
     {% endblock %}
 </head>
@@ -42,6 +43,10 @@
                                     aria-current="page"><img src="{% static 'logo_black_transporent.png' %}"
                                                              width="80dp"
                                                              alt="Command logo"></a></li>
+            <li class="nav-item" style="margin-left: 50px;"><a href="{% url 'home' %}" class="btn btn-success"
+                                                               aria-current="page">Проверка</a></li>
+            <li class="nav-item" style="margin-left: 30px;"><a href="{% url 'producers' %}" class="btn btn-success"
+                                                               aria-current="page">Карта безопасной продукции</a></li>
         </ul>
         <ul class="nav">
             <li class="nav-link link-dark">Команда <b>JETFork</b></li>

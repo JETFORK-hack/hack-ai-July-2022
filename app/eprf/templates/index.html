@@ -9,72 +9,60 @@
     </div>
 {% endblock %}
 
+{% block headers %}
+    <style type="text/css">
+        .fixWidthPiclke ~ .dropdown-menu {
+            max-width: 65%;
+            min-width: 30%;
+        }
+
+        .required:after {
+            color: red;
+            content: " *";
+        }
+    </style>
+{% endblock %}
+
 {% load static %}
 
 {% block content %}
     <h1>Форма ввода</h1>
     <div>
-        <form onsubmit="singleCheck(this);return false" name="checkOne" id="formCheckOne">
-            {% csrf_token %}
+        <div onsubmit="//singleCheck(this);return false" name="checkOne" id="formCheckOne">
             <div class="mb-3">
-                <label for="inputProductName" class="form-label">Общее наименование продукции</label>
+                <label for="inputProductName" class="form-label required">Общее наименование продукции</label>
                 <textarea class="form-control" id="inputProductName" name="excelFile" rows="3"></textarea>
             </div>
 
             <div class="mb-3" id="divProductName">
-                <label for="inputCategory" class="form-label">Выберите категорию</label>
-                <input class="form-control" list="dataListCategory" id="inputCategory"
-                       placeholder="Кликните, чтобы выбрать или начните вводить" name="inputCategory"
-                       onkeydown="return event.key != 'Enter';"
-                       onchange="listDatabaseFields()">
-                <div id="divProductNameMessages" class="m-2"></div>
-                <div>
-                    <datalist id="dataListCategory">
-                        {# TODO: Большое количество таблиц может вызвать временные задержки. #}
-                        {# Подумать над оптимизацией, возможно, вынести в отдельную страницу и там обновлять, либо использовать js  #}
-                        {% for c_filter in category_filters %}
-                            <option value="{{ c_filter.code }} {{ c_filter.text }}">
-                        {% endfor %}
-                    </datalist>
-                </div>
+                <label for="product_group" class="form-label">Группа</label>
+                <select class="selectpicker m-2 fixWidthPiclke" id="product_group" data-live-search="true"
+                        title="Выбрать" data-width="98%">
+                    {% for product_group_row in product_groups %}
+                        <option value="{{ product_group_row }}">{{ product_group_row }}</option>
+                    {% endfor %}
+                </select>
 
-                <div class="mb-3" id="divSubcroductName">
-                    <label for="inputSubcategory" class="form-label">Выберите ТН-ВЕД</label>
-                    <div class="row">
-                        <div class="col col-md-2">
-                            <input class="form-control" list="dataListSubcategory" id="inputSubcategory"
-                                   placeholder="00" name="tableName"
-                                   onkeydown="return event.key != 'Enter';"
-                                   onchange="">
-                        </div>
-                        <div class="col col-md-2">
-                            <input class="form-control" list="dataListSubcategory" id="inputSubcategory"
-                                   placeholder="00" name="tableName"
-                                   onkeydown="return event.key != 'Enter';"
-                                   onchange="">
-                        </div>
-                        <div class="col col-md-8">
-                            <input class="form-control" list="dataListSubcategory" id="inputSubcategory"
-                                   placeholder="00000000" name="tableName"
-                                   onkeydown="return event.key != 'Enter';"
-                                   onchange="">
-                        </div>
-                    </div>
-                    <datalist id="dataListSubcategory">
-                        {#          Сюда приходят варианты с метода get_subcategory_info#}
-                    </datalist>
-                </div>
-                <label for="inputCategory" class="form-label">Выберите регламент</label>
-                <input class="form-control" list="dataListCategory" id="inputCategory"
-                       placeholder="Кликните, чтобы выбрать или начните вводить" name="inputCategory"
-                       onkeydown="return event.key != 'Enter';"
-                       onchange="listDatabaseFields()">
-                <div id="divProductNameMessages" class="m-2"></div>
+                <label for="technical_regulations" class="form-label">Регламент</label>
+                <select class="selectpicker m-2 fixWidthPiclke" id="technical_regulations" data-live-search="true"
+                        title="Выбрать" data-width="98%">
+                    {% for technical_regulation_row in technical_regulations %}
+                        <option value="{{ technical_regulation_row }}">{{ technical_regulation_row }}</option>
+                    {% endfor %}
+                </select>
 
-                <button type="submit" class="btn btn-primary mb-3" id="formCheckOneButton">
-                    Отправить
-                </button>
-        </form>
+                <label for="inputSubcategory" class="form-label">ТН-ВЭД</label>
+                <input id="ved-code" class="form-control" placeholder="00 00 00000000" style="width: 160px;">
+
+            </div>
+            <button class="btn btn-primary mb-3" id="formCheckOneButton">
+                Отправить
+            </button>
+            <div id="singleAlert">
+
+            </div>
+
+        </div>
     </div>
     <hr class="md-4">
     <div>
@@ -215,6 +203,66 @@
         }
 
 
+    </script>
+    <script>
+        $(function () {
+            var regExpMask = IMask(
+                document.getElementById('ved-code'),
+                {
+                    {#mask: /^[1-6]\d{0,5}$/#}
+                    mask: '00  00  000000'
+                });
+            $('#formCheckOneButton').on('click', function () {
+                $('#singleAlert').empty();
+                let product_name = $('#inputProductName').val();
+                if (product_name.trim().length == 0) {
+                    $('#singleAlert').append('<div class="alert alert-danger" >Отсутствует наименование продукции!</div>');
+                    return;
+                }
+                $('#formCheckOneButton')[0].innerHTML = '<span class="spinner-border spinner-border-sm" role="status" id="formCheckOneButtonLoad"></span> Отправить';
+
+                let category_name = $('#product_group').val();
+                let reglament_name = $('#technical_regulations').val();
+                let VED = $('#ved-code').val().split('  ').join('').padEnd(10, '0');
+                sendData = {
+                    'product_name': product_name,
+                    'category_name': category_name,
+                    'reglament_name': reglament_name,
+                    'VED': VED,
+                }
+                console.log(sendData)
+
+                let csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                let request = new Request(
+                    '{% url 'single_check' %}',
+                    {headers: {'X-CSRFToken': csrfToken}}
+                )
+
+                fetch(request, {
+                    method: 'POST',
+                    mode: 'same-origin',
+                    body: JSON.stringify(sendData),
+                })
+                    .then((response) => {
+                        return response.json();
+                    })
+                    .then((data) => {
+                        {#Получаем данные#}
+                        console.log(data)
+                        if (data['status'] == 'ok') {
+                            console.log(data.result);
+                            let res = data.result;
+                            let ved = `<li><b>Коды ТН ВЭД:</b> ${res['Коды ТН ВЭД']}</li>` || ''
+                            $('#singleAlert').append(`<div class="alert alert-success" id="singleAlertSuccess"><ul><li><b>Группа продукции:</b> ${res['Группа продукции']}</li><li><b>Технические регламенты:</b> ${res['Технические регламенты']}</li></ul></div>`);
+                            $('#formCheckOneButtonLoad').remove();
+                        } else {
+                            console.log(data)
+                        }
+                    }).catch((error) => {
+                        console.log(error);
+                });
+            });
+        })
     </script>
 
 {% endblock %}

@@ -10,3 +10,4 @@ app/resources/veds/*
 materials/*
 app/__pycache__
 app/hackathon/__pycache__/
+app/eprf/ml/*

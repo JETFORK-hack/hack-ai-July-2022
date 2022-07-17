@@ -3,6 +3,8 @@
 import os
 import sys
 
+import razdel as razdel
+
 
 def main():
     """Run administrative tasks."""
@@ -17,6 +19,9 @@ def main():
         ) from exc
     execute_from_command_line(sys.argv)
 
+def tokenize_with_razdel(text):
+    tokens = [token.text for token in razdel.tokenize(text)]
+    return tokens
 
 if __name__ == '__main__':
     main()

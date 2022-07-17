@@ -91,7 +91,7 @@ DATABASES = {
         'ENGINE': environ.get('SQL_ENGINE', default='django.db.backends.postgresql'),
         'NAME': environ.get('POSTGRES_DB', default='postgres'),
         'USER': environ.get('POSTGRES_USER', default='postgres'),
-        'PASSWORD': environ.get('POSTGRES_PASSWORD', default='jetfork2022kack'),
+        'PASSWORD': environ.get('POSTGRES_PASSWORD', default='jetfork2022hack'),
         'HOST': environ.get('DB_DOCKER_HOST', default='localhost'),
         'PORT': environ.get('DB_PORT', default='5432'),
     }
